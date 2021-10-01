@@ -20,19 +20,8 @@ function clear()
     end
 end
 
-function swap_side(side)
-    if (side == Nord)
-        return Sud
-    end
-    if (side == Sud)
-        return Nord
-    end
-    if (side == Ost)
-        return West
-    end
-    if (side ==  West)
-        return Ost
-    end
+function inverse(side)
+    return HorizonSide((Int(side) + 2) % 4)
 end
 
 function mark(r)
@@ -169,8 +158,10 @@ function find_marker(r)
     end
 end
 
+function main(r)
+    find_marker(r)
+end
+
 #=
-r=Robot()
-main(r)
-show(r)
+Для решения задачи запускать функцию main()
 =#
