@@ -30,7 +30,7 @@ function inverse(side)
 end
 
 function mark(R)
-    if ((R.x == R.max_x && R.y == R.max_y) || (R.x == R.min_x && R.y == R.max_y) || (R.x == R.max_x && R.y == R.min_y) || (R.x == R.min_x && R.y == R.min_y))
+    if (abs(R.x + R.y - R.spawn - R.spawn) % 2 == 0)
         putmarker!(R.r)
     end
 end
@@ -88,7 +88,12 @@ function main(r)
     dfs(R)
 end
 
-#=
-Для решения задачи запускать функцию main()
-=#
+r = Robot(animate = false, "mirea-progs/Task19/temp.sit")
+main(r)
+show(r)
 
+
+#=
+ДАНО: Где-то на неограниченном со всех сторон поле и без внутренних перегородок имеется единственный маркер. Робот - в произвольной клетке поля.
+РЕЗУЛЬТАТ: Робот - в клетке с тем маркером.
+=#

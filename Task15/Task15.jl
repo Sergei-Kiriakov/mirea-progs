@@ -30,7 +30,7 @@ function inverse(side)
 end
 
 function mark(R)
-    if (R.x == R.max_x || R.x == R.min_x || R.y == R.min_y || R.y == R.max_y)
+    if (R.x == R.max_x || R.x == R.min_x || R.y == R.max_y || R.y == R.min_y)
         putmarker!(R.r)
     end
 end
@@ -86,7 +86,11 @@ function main(r)
     dfs(R)
 end
 
-#=
-Для решения задачи запускать функцию main()
-=#
+r = Robot(animate = false, "mirea-progs/Task15/temp.sit")
+main(r)
+show(r)
 
+#=
+ДАНО: Робот - в произвольной клетке поля
+РЕЗУЛЬТАТ: Робот - в исходном положении, и все клетки по периметру внешней рамки промакированы
+=#

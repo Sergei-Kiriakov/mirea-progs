@@ -60,8 +60,7 @@ function dfs_find_bord(R)
     end
 end
 
-function dfs(R)
-    mark(R)
+function dfs_move_to(R, x, y)
     for i in 1:4
         x1 = R.x + nx[i]
         y1 = R.y + ny[i]
@@ -70,7 +69,10 @@ function dfs(R)
             move!(r, sides[i])
             R.x += nx[i]
             R.y += ny[i] 
-            dfs(R)
+            dfs_move_to(R, x, y)
+            if (R.x == x && R.y == y)
+                return 
+            end
             move!(r, inverse(sides[i]))
             R.x -= nx[i]
             R.y -= ny[i]
@@ -78,19 +80,78 @@ function dfs(R)
     end
 end
 
+function try_move(R, side)
+    if (!isborder(R.r, side))
+        move!(R.r, side)
+    end
+end
+
+function cnt_horizontal(R)
+    x = R.min_x
+    y = R.min_y
+    ans = 0
+    while (y != R.max_y)
+        flag = false
+        x = R.min_x
+        clear()
+        dfs_move_to(R, x, y)
+        while (x != R.max_x)
+            if (isborder(R.r, Nord))
+                if (!flag)
+                    flag = true
+                    ans += 1
+                end
+            else
+                flag = false
+            end
+            clear()
+            dfs_move_to(R, x + 1, y)
+            x += 1
+        end
+        y += 1    
+    end
+    return ans
+end
+
+function cnt_vertical(R)
+    x = R.min_x
+    y = R.min_y
+    ans = 0
+    while (x != R.max_x)
+        flag = false
+        y = R.min_y
+        clear()
+        dfs_move_to(R, x, y)
+        while (y != R.max_y)
+            if (isborder(R.r, Ost))
+                if (!flag)
+                    flag = true
+                    ans += 1
+                end
+            else
+                flag = false
+            end
+            clear()
+            dfs_move_to(R, x, y + 1)
+            y += 1
+        end
+        x += 1    
+    end
+    return ans
+end 
+
 function main(r)
     R = MyRobot()
     clear()
-    dfs_find_bord(R)
-    clear()
-    dfs(R)
+    dfs_find_bord(R)    
+    println(cnt_horizontal(R) + cnt_vertical(R))
 end
 
-r = Robot(animate = false, "mirea-progs/Task7/temp.sit")
+r = Robot(animate = false, "mirea-progs/Task21/temp.sit")
 main(r)
 show(r)
 
+
 #=
-ДАНО: Робот - в произвольной клетке ограниченного прямоугольного поля (без внутренних перегородок)
-РЕЗУЛЬТАТ: Робот - в исходном положении, в клетке с роботом стоит маркер, и все остальные клетки поля промаркированы в шахматном порядке
+Посчитать число всех горизонтальных прямолинейных перегородок (вертикальных - нет)
 =#

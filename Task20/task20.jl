@@ -30,12 +30,8 @@ function inverse(side)
 end
 
 function mark(R)
-    for i in 1:4
-        x1 = R.x + nx[i]
-        y1 = R.y + ny[i]
-        if (used[x1][y1] == 0 && x1 >= R.min_x && x1 <= R.max_x && y1 >= R.min_y && y1 <= R.max_y)
-            putmarker!(R.r)
-        end 
+    if (abs(R.x + R.y - R.spawn - R.spawn) % 2 == 0)
+        putmarker!(R.r)
     end
 end
 
@@ -64,17 +60,19 @@ function dfs_find_bord(R)
     end
 end
 
-function dfs(R)
-    mark(R)
+function dfs_move_to(R, x, y)
     for i in 1:4
         x1 = R.x + nx[i]
         y1 = R.y + ny[i]
-        if (used[x1][y1] == 1 && !isborder(r, sides[i]))
-            used[x1][y1] = 2
+        if (used[x1][y1] == 0 && !isborder(r, sides[i]))
+            used[x1][y1] = 1
             move!(r, sides[i])
             R.x += nx[i]
             R.y += ny[i] 
-            dfs(R)
+            dfs_move_to(R, x, y)
+            if (R.x == x && R.y == y)
+                return 
+            end
             move!(r, inverse(sides[i]))
             R.x -= nx[i]
             R.y -= ny[i]
@@ -82,19 +80,51 @@ function dfs(R)
     end
 end
 
+function try_move(R, side)
+    if (!isborder(R.r, side))
+        move!(R.r, side)
+    end
+end
+
+function cnt_horizontal(R)
+    x = R.min_x
+    y = R.min_y
+    ans = 0
+    while (y != R.max_y)
+        flag = false
+        x = R.min_x
+        clear()
+        dfs_move_to(R, x, y)
+        while (x != R.max_x)
+            if (isborder(R.r, Nord))
+                if (!flag)
+                    flag = true
+                    ans += 1
+                end
+            else
+                flag = false
+            end
+            clear()
+            dfs_move_to(R, x + 1, y)
+            x += 1
+        end
+        y += 1    
+    end
+    return ans
+end
+
 function main(r)
     R = MyRobot()
     clear()
-    dfs_find_bord(R)
-    dfs(R)
+    dfs_find_bord(R)    
+    println(cnt_horizontal(R))
 end
 
-r = Robot(animate = false, "mirea-progs/Task6/temp.sit")
+r = Robot(animate = false, "mirea-progs/Task20/temp.sit")
 main(r)
 show(r)
 
+
 #=
-ДАНО: На ограниченном внешней прямоугольной рамкой поле имеется ровно одна внутренняя перегородка в форме прямоугольника.
-Робот - в произвольной клетке поля между внешней и внутренней перегородками.
-РЕЗУЛЬТАТ: Робот - в исходном положении и по всему периметру внутренней перегородки поставлены маркеры.
+Посчитать число всех горизонтальных прямолинейных перегородок (вертикальных - нет)
 =#

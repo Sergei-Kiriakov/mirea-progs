@@ -30,7 +30,7 @@ function inverse(side)
 end
 
 function mark(R)
-    if (R.x + R.y == 2 * R.spawn || R.x - R.y == 0)
+    if (R.x - R.y == R.spawn - R.spawn || R.x + R.y == R.spawn + R.spawn)
         putmarker!(R.r)
     end
 end
@@ -86,7 +86,12 @@ function main(r)
     dfs(R)
 end
 
-#=
-Для решения задачи запускать функцию main()
-=#
+r = Robot(animate = false, "mirea-progs/Task13/temp.sit")
+main(r)
+show(r)
 
+
+#=
+ДАНО: Робот - в произвольной клетке ограниченного прямоугольной рамкой поля без внутренних перегородок и маркеров.
+РЕЗУЛЬТАТ: Робот - в исходном положении в центре косого креста (в форме X) из маркеров.
+=#

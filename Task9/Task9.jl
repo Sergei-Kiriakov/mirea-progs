@@ -1,16 +1,21 @@
 import HorizonSideRobots
 using HorizonSideRobots
-a = [Nord, Ost, Sud, West]
+sides = [Nord, Ost, Sud, West]
 nx = [0, 1, 0, -1]
 ny = [1, 0, -1, 0]
-x = 25
-y = 25
-spawn = 25
 used = [Int[0 for i in 1:50] for i in 1:50]
-max_x = 25
-min_x = 25
-max_y = 25
-min_y = 25
+
+mutable struct MyRobot
+    r::Robot
+    x::Int
+    y::Int
+    max_x::Int
+    min_x::Int
+    spawn::Int
+    max_y::Int
+    min_y::Int
+    MyRobot() = new(r, 25, 25, 25, 25, 25, 25, 25)
+end
 
 function clear()
     for i in 1:50
@@ -24,144 +29,71 @@ function inverse(side)
     return HorizonSide((Int(side) + 2) % 4)
 end
 
-function mark(r)
-    global x, y, spawn, min_x, max_x, min_y, max_y
-    if (x + y == 2 * spawn || x - y == 0)
-        putmarker!(r)
+function mark(R)
+    if (abs(R.x + R.y - R.spawn - R.spawn) % 2 == 0)
+        putmarker!(R.r)
     end
 end
 
-function up_coord(indd)
-    global x, y
-    if (indd == 1)
-        y += 1
-    elseif (indd == 2)
-        x += 1
-    elseif (indd == 3)
-        y -= 1
-    else
-        x -= 1
-    end
+function up(R)
+    R.min_x = min(R.x, R.min_x)
+    R.min_y = min(R.y, R.min_y)
+    R.max_x = max(R.x, R.max_x)
+    R.max_y = max(R.y, R.max_y)
 end
 
-function run(r, indd)
-    while (!isborder(r, a[indd]))
-        move!(r, a[indd])
-        up_coord(indd)
-    end
-end
-
-function run_and_mark(r, indd)
-    while (!isborder(r, a[indd]))
-        move!(r, a[indd])
-        putmarker!(r)
-        up_coord(indd)
-    end
-end
-
-function go_spawn(r)
-    global x, y, spawn
-    if (x < spawn)
-        while (x != spawn)
-            x += 1
-            move!(r, Ost)
-        end
-    else
-        while (x != spawn)
-            x -= 1
-            move!(r, West)
-        end
-    end
-    if (y < spawn)
-        while (y != spawn)
-            y += 1
-            move!(r, Nord)
-        end
-    else
-        while (y != spawn)
-            y -= 1
-            move!(r, Sud)
-        end
-    end
-end
-
-function dfs_find_bord(r)
-    global x, y, min_x, max_x, min_y, max_y
-    for indd in 1:4
-        x1 = x + nx[indd]
-        y1 = y + ny[indd]
-        if (used[x1][y1] == 0 && !isborder(r, a[indd]))
+function dfs_find_bord(R)
+    for i in 1:4
+        x1 = R.x + nx[i]
+        y1 = R.y + ny[i]
+        if (used[x1][y1] == 0 && !isborder(R.r, sides[i]))
             used[x1][y1] = 1
-            move!(r, a[indd])
-            up_coord(indd)
-            min_x = min(x, min_x)
-            min_y = min(y, min_y)
-            max_x = max(x, max_x)
-            max_y = max(y, max_y)
-            dfs_find_bord(r)
-            indd1 = (indd + 1) % 4 + 1
-            move!(r, a[indd1])
-            up_coord(indd1)
+            move!(R.r, sides[i])
+            R.x += nx[i]
+            R.y += ny[i] 
+            up(R)
+            dfs_find_bord(R)
+            R.x -= nx[i]
+            R.y -= ny[i] 
+            move!(r, inverse(sides[i]))
         end
     end
 end
 
-function dfs(r)
-    global x, y
-    mark(r)
-    for indd in 1:4
-        x1 = x + nx[indd]
-        y1 = y + ny[indd]
-        if (used[x1][y1] == 0 && !isborder(r, a[indd]))
+function dfs(R)
+    for i in 1:4
+        x1 = R.x + nx[i]
+        y1 = R.y + ny[i]
+        if (used[x1][y1] == 0 && !isborder(r, sides[i]))
             used[x1][y1] = 1
-            move!(r, a[indd])
-            up_coord(indd)
-            dfs(r)
-            indd1 = (indd + 1) % 4 + 1
-            move!(r, a[indd1])
-            up_coord(indd1)
+            move!(r, sides[i])
+            R.x += nx[i]
+            R.y += ny[i] 
+            dfs(R)
+            if (ismarker(R.r))
+                return 
+            end
+            move!(r, inverse(sides[i]))
+            R.x -= nx[i]
+            R.y -= ny[i]
         end
-    end
-end
-
-function try_move(r, side)
-    if (!isborder(r, side))
-        move!(r, side)
-    end
-end
-
-
-function moves(side, cnt)
-    for i in 1:cnt
-        try_move(r, side)
-        if (ismarker(r))
-            return false
-        end
-    end
-    return true
-end
-
-function find_marker(r)
-    cnt = 3
-    while (!ismarker(r))
-        move!(r, West)
-        move!(r, Nord)
-        indd = 1
-        i = 0
-        flag = true
-        while (i < 4 && flag)
-            flag = moves(a[indd], cnt - 1)
-            indd = indd % 4 + 1
-            i += 1
-        end
-        cnt += 2
     end
 end
 
 function main(r)
-    find_marker(r)
+    R = MyRobot()
+    clear()
+    dfs_find_bord(R)
+    clear()
+    dfs(R)
 end
 
+r = Robot(animate = false, "mirea-progs/Task9/temp.sit")
+main(r)
+show(r)
+
+
 #=
-Для решения задачи запускать функцию main()
+ДАНО: Где-то на неограниченном со всех сторон поле и без внутренних перегородок имеется единственный маркер. Робот - в произвольной клетке поля.
+РЕЗУЛЬТАТ: Робот - в клетке с тем маркером.
 =#
